@@ -15,6 +15,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
+  const MAX_REMINDERS = 10;
+
   const fetchReminders = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -146,7 +148,11 @@ export default function Home() {
   return (
     <div className="container mx-auto p-4 max-w-3xl py-12">
       <h1 className="text-2xl font-bold mb-4">Recurring Reminders</h1>
-      <ReminderForm onSubmit={handleSubmit} />
+      <ReminderForm
+        onSubmit={handleSubmit}
+        reminderCount={reminders.length}
+        maxReminders={MAX_REMINDERS}
+      />
       {error && <ErrorAlert message={error} />}
       {isLoading ? (
         <LoadingSpinner />

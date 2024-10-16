@@ -6,9 +6,15 @@ import SubmitButton from './submit-button';
 
 interface ReminderFormProps {
   onSubmit: (data: Omit<Reminder, 'id' | 'created_at'>) => Promise<void>;
+  reminderCount: number;
+  maxReminders: number;
 }
 
-export default function ReminderForm({ onSubmit }: ReminderFormProps) {
+export default function ReminderForm({
+  onSubmit,
+  reminderCount,
+  maxReminders,
+}: ReminderFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, setValue, control } =
     useForm<Omit<Reminder, 'id' | 'created_at'>>();
@@ -26,7 +32,10 @@ export default function ReminderForm({ onSubmit }: ReminderFormProps) {
     setDefaultValues();
   }, [setDefaultValues]);
 
+  const isLimitReached = reminderCount >= maxReminders;
+
   const onSubmitForm = async (data: Omit<Reminder, 'id' | 'created_at'>) => {
+    if (isLimitReached) return;
     setIsSubmitting(true);
     try {
       await onSubmit(data);
@@ -55,7 +64,6 @@ export default function ReminderForm({ onSubmit }: ReminderFormProps) {
 
   const inputClasses =
     'block w-full rounded-md border-0 py-1.5 px-4 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:leading-6 w-fit';
-
   return (
     <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
       <div>
@@ -69,6 +77,7 @@ export default function ReminderForm({ onSubmit }: ReminderFormProps) {
           placeholder="Memento this"
           className={inputClasses}
           maxLength={250}
+          disabled={isLimitReached}
         />
         <p className="text-sm text-gray-500 mt-1">
           {message.length}/250 characters
@@ -83,6 +92,7 @@ export default function ReminderForm({ onSubmit }: ReminderFormProps) {
             id="day"
             {...register('day', { required: true })}
             className={inputClasses}
+            disabled={isLimitReached}
           >
             {weekdays.map((weekday) => (
               <option key={weekday} value={weekday} className="block px-4 py-2">
@@ -100,10 +110,17 @@ export default function ReminderForm({ onSubmit }: ReminderFormProps) {
             id="time"
             {...register('time', { required: true })}
             className={inputClasses}
+            disabled={isLimitReached}
           />
         </div>
       </div>
-      <SubmitButton isLoading={isSubmitting} />
+      {isLimitReached && (
+        <p className="text-red-500">
+          Maximum limit of {maxReminders} reminders reached. Please delete some
+          reminders to add more.
+        </p>
+      )}
+      <SubmitButton isLoading={isSubmitting} disabled={isLimitReached} />
     </form>
   );
 }
