@@ -1,71 +1,109 @@
-import { Reminder } from '@/api/reminder';
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { format, addMinutes } from 'date-fns';
+import { Reminder } from '@/app/api/reminder';
+import SubmitButton from './submit-button';
 
 interface ReminderFormProps {
-  onSubmit: (data: Reminder) => void;
+  onSubmit: (data: Omit<Reminder, 'id' | 'created_at'>) => Promise<void>;
 }
 
 export default function ReminderForm({ onSubmit }: ReminderFormProps) {
-  const { register, handleSubmit } = useForm<Reminder>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { register, handleSubmit, setValue, control } =
+    useForm<Omit<Reminder, 'id' | 'created_at'>>();
+
+  const setDefaultValues = useCallback(() => {
+    const now = new Date();
+    const nextMinute = addMinutes(now, 2);
+    const currentDay = format(now, 'EEEE');
+    const currentTime = format(nextMinute, 'HH:mm');
+    setValue('day', currentDay);
+    setValue('time', currentTime);
+  }, [setValue]);
+
+  useEffect(() => {
+    setDefaultValues();
+  }, [setDefaultValues]);
+
+  const onSubmitForm = async (data: Omit<Reminder, 'id' | 'created_at'>) => {
+    setIsSubmitting(true);
+    try {
+      await onSubmit(data);
+      // Reset to new default values after successful submission
+      setDefaultValues();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const message = useWatch({
+    control,
+    name: 'message',
+    defaultValue: '',
+  });
+
+  const weekdays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+
+  const inputClasses =
+    'block w-full rounded-md border-0 py-1.5 px-4 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:leading-6 w-fit';
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
       <div>
-        <label
-          htmlFor="message"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="message" className="block font-medium">
           Reminder Message
         </label>
         <input
           type="text"
           id="message"
-          {...register('message', { required: true })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          {...register('message', { required: true, maxLength: 250 })}
+          placeholder="Memento this"
+          className={inputClasses}
+          maxLength={250}
         />
+        <p className="text-sm text-gray-500 mt-1">
+          {message.length}/250 characters
+        </p>
       </div>
-      <div>
-        <label
-          htmlFor="day"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Day of the Week
-        </label>
-        <select
-          id="day"
-          {...register('day', { required: true })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-        >
-          <option value="Monday">Monday</option>
-          <option value="Tuesday">Tuesday</option>
-          <option value="Wednesday">Wednesday</option>
-          <option value="Thursday">Thursday</option>
-          <option value="Friday">Friday</option>
-          <option value="Saturday">Saturday</option>
-          <option value="Sunday">Sunday</option>
-        </select>
+      <div className="flex flex-row items-center justify-start gap-x-6">
+        <div>
+          <label htmlFor="day" className="block font-medium">
+            Day of the Week
+          </label>
+          <select
+            id="day"
+            {...register('day', { required: true })}
+            className={inputClasses}
+          >
+            {weekdays.map((weekday) => (
+              <option key={weekday} value={weekday} className="block px-4 py-2">
+                {weekday}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="time" className="block font-medium">
+            Time
+          </label>
+          <input
+            type="time"
+            id="time"
+            {...register('time', { required: true })}
+            className={inputClasses}
+          />
+        </div>
       </div>
-      <div>
-        <label
-          htmlFor="time"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Time
-        </label>
-        <input
-          type="time"
-          id="time"
-          {...register('time', { required: true })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-        />
-      </div>
-      <button
-        type="submit"
-        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      >
-        Create Reminder
-      </button>
+      <SubmitButton isLoading={isSubmitting} />
     </form>
   );
 }

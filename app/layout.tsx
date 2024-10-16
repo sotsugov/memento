@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Mememto',
+  title: 'Memento',
   description: 'Remind yourself of anything at any point (this week)',
 };
 

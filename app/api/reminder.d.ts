@@ -1,6 +1,7 @@
 export interface Reminder {
-  _id?: string;
+  id?: number;
   message: string;
   day: string;
   time: string;
+  created_at?: string;
 }
