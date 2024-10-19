@@ -1,5 +1,6 @@
 import { Reminder } from '@/app/api/reminder';
 import React, { useState } from 'react';
+import MementoBell from './reminder-icon';
 
 interface ReminderListProps {
   reminders: Reminder[];
@@ -33,16 +34,18 @@ export default function ReminderList({
     }
   };
 
+  const truncateMessage = (message: string, maxLength: number = 50) => {
+    return message.length > maxLength
+      ? `${message.substring(0, maxLength)}...`
+      : message;
+  };
+
   return (
     <div className="mt-8">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-xl font-semibold">Current Reminders</h2>
         {reminders.length > 0 && (
-          <button
-            onClick={handleClearAll}
-            disabled={isClearingAll}
-            className="text-red-600 hover:text-red-800 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button onClick={handleClearAll} disabled={isClearingAll}>
             {isClearingAll ? '...' : 'Clear All'}
           </button>
         )}
@@ -58,24 +61,22 @@ export default function ReminderList({
               key={reminder.id}
               className="bg-gray-100 dark:bg-gray-500/20 p-2 rounded flex justify-between items-center"
             >
-              <span>
-                {reminder.message}
-                {' • '}
-                <span className="text-sm opacity-50">
-                  Every {reminder.day} at {reminder.time}
+              <div className="flex flex-row gap-x-2 items-center">
+                <MementoBell />
+                <span>
+                  {truncateMessage(reminder.message)}
+                  {' • '}
+                  <span className="text-sm opacity-50">
+                    Every {reminder.day} at {reminder.time}
+                  </span>
                 </span>
-              </span>
+              </div>
               <button
                 onClick={() => reminder.id && handleDelete(reminder.id)}
                 disabled={deletingId === reminder.id}
-                className={`mr-2 text-red-600 hover:text-red-800 focus:outline-none ${
-                  deletingId === reminder.id
-                    ? 'opacity-50 cursor-not-allowed'
-                    : ''
-                }`}
                 aria-label="Delete reminder"
               >
-                {deletingId === reminder.id ? '...' : 'Delete'}
+                {deletingId === reminder.id ? '...' : 'Remove'}
               </button>
             </li>
           ))}

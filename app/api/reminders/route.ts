@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Reminder } from '../reminder';
-import { createClient } from '@/app/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET() {
   const supabase = createClient();

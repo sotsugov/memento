@@ -5,7 +5,7 @@ import { parse, isBefore, addDays } from 'date-fns';
 import ReminderForm from '@/components/reminder-form';
 import ReminderList from '@/components/reminder-list';
 import { Reminder } from './api/reminder';
-import { createClient } from '@/app/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import ErrorAlert from '@/components/error-alert';
 import LoadingSpinner from '@/components/loading-spinner';
 

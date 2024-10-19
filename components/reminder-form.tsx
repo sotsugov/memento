@@ -16,8 +16,13 @@ export default function ReminderForm({
   maxReminders,
 }: ReminderFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, handleSubmit, setValue, control } =
-    useForm<Omit<Reminder, 'id' | 'created_at'>>();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm<Omit<Reminder, 'id' | 'created_at'>>();
 
   const setDefaultValues = useCallback(() => {
     const now = new Date();
@@ -39,7 +44,6 @@ export default function ReminderForm({
     setIsSubmitting(true);
     try {
       await onSubmit(data);
-      // Reset to new default values after successful submission
       setDefaultValues();
     } finally {
       setIsSubmitting(false);
@@ -63,25 +67,36 @@ export default function ReminderForm({
   ];
 
   const inputClasses =
-    'block w-full rounded-md border-0 py-1.5 px-4 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:leading-6 w-fit';
+    'block max-w-sm rounded-md border-0 py-1.5 px-4 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-slate-600 sm:leading-6 w-fit';
+
   return (
     <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
-      <div>
+      <div className="message-container">
         <label htmlFor="message" className="block font-medium">
           Reminder Message
         </label>
         <input
           type="text"
           id="message"
-          {...register('message', { required: true, maxLength: 250 })}
+          {...register('message', {
+            required: 'Message is required',
+            maxLength: 250,
+          })}
           placeholder="Memento this"
           className={inputClasses}
           maxLength={250}
           disabled={isLimitReached}
         />
-        <p className="text-sm text-gray-500 mt-1">
-          {message.length}/250 characters
-        </p>
+        <div className="message-info">
+          <p className="text-sm text-gray-500 mt-1">
+            {message.length}/250 characters
+          </p>
+          {errors.message && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.message.message}
+            </p>
+          )}
+        </div>
       </div>
       <div className="flex flex-row items-center justify-start gap-x-6">
         <div>
@@ -120,7 +135,10 @@ export default function ReminderForm({
           reminders to add more.
         </p>
       )}
-      <SubmitButton isLoading={isSubmitting} disabled={isLimitReached} />
+      <SubmitButton
+        isLoading={isSubmitting}
+        disabled={isLimitReached || !message.trim()}
+      />
     </form>
   );
 }

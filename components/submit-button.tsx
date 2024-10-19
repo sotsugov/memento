@@ -15,9 +15,9 @@ export default function SubmitButton({
       disabled={isLoading || disabled}
       className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
         isLoading || disabled
-          ? 'bg-indigo-400 cursor-not-allowed'
-          : 'bg-indigo-600 hover:bg-indigo-700'
-      } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+          ? 'bg-slate-400 cursor-not-allowed'
+          : 'bg-slate-600 hover:bg-slate-700'
+      } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500`}
     >
       {isLoading ? 'Creating...' : 'Create Reminder'}
     </button>
